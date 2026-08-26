@@ -8,7 +8,7 @@ import { cn, pct } from "@/lib/utils";
 import { Topbar } from "@/components/shell/topbar";
 import { ButtonLink } from "@/components/ui/button";
 import { Empty } from "@/components/ui/empty";
-import { KindTag, ProjectStatusPill } from "@/components/ui/pills";
+import { ProjectStatusPill } from "@/components/ui/pills";
 
 export const metadata = { title: "Projects" };
 
@@ -71,7 +71,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                     <th className="px-3 py-2.5 text-right font-medium hairline-b">People</th>
                     <th className="px-3 py-2.5 text-right font-medium hairline-b">{monthLabel(today)}</th>
                     <th className="px-3 py-2.5 text-right font-medium hairline-b">All time</th>
-                    <th className="w-[180px] px-3 py-2.5 font-medium hairline-b">Budget</th>
+                    <th className="w-[200px] px-3 py-2.5 font-medium hairline-b">Budget</th>
                     <th className="px-3 py-2.5 font-medium hairline-b">Status</th>
                   </tr>
                 </thead>
@@ -84,7 +84,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                           <Link href={`/projects/${p.id}`} className="block min-w-0">
                             <span className="flex items-center gap-2">
                               <span className="truncate font-medium hover:underline">{p.name}</span>
-                              {p.kind !== "internal" && <KindTag kind={p.kind} className="shrink-0" />}
+                              
                             </span>
                             <span className="block font-mono text-[11px] text-ink-3">
                               {p.code}
@@ -105,7 +105,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                               <span className="bar w-20">
                                 <i style={{ width: `${Math.min(100, Math.round((burn.ratio ?? 0) * 100))}%`, background: burn.state === "over" ? "var(--crit)" : burn.state === "warn" ? "var(--warn)" : "var(--accent)" }} />
                               </span>
-                              <span className={cn("tnum text-[12px]", burn.state === "over" ? "text-crit" : burn.state === "warn" ? "text-warn" : "text-ink-2")}>
+                              <span className={cn("tnum whitespace-nowrap text-[12px]", burn.state === "over" ? "text-crit" : burn.state === "warn" ? "text-warn" : "text-ink-2")}>
                                 {pct(burn.ratio ?? 0)} of {burn.budget}
                               </span>
                             </span>

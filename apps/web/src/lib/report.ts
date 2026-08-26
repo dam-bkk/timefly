@@ -17,7 +17,7 @@ export function parseParams(sp: Record<string, string | undefined>): ReportParam
     from: sp.from && isISODate(sp.from) ? sp.from : mf,
     to: sp.to && isISODate(sp.to) ? sp.to : mt,
     rows: sp.rows && dims.includes(sp.rows) ? sp.rows : "person",
-    cols: sp.cols && (dims.includes(sp.cols) || sp.cols === "none") ? sp.cols : "project",
+    cols: sp.cols && (dims.includes(sp.cols) || sp.cols === "none") ? sp.cols : "week",
     teamId: sp.team ? Number(sp.team) || null : null,
     projectId: sp.project ? Number(sp.project) || null : null,
     personId: sp.person ? Number(sp.person) || null : null,

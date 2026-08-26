@@ -12,9 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = (await cookies()).get("tl_theme")?.value === "dark" ? "dark" : "light";
+  const jar = await cookies();
+  const theme = jar.get("tl_theme")?.value === "dark" ? "dark" : "light";
+  const sidebar = jar.get("tl_sidebar")?.value === "locked" ? "locked" : "rail";
   return (
-    <html lang="en" data-theme={theme} suppressHydrationWarning>
+    <html lang="en" data-theme={theme} data-sidebar={sidebar} suppressHydrationWarning>
       <body className={`${geist.variable} ${geistMono.variable} font-sans`}>{children}</body>
     </html>
   );

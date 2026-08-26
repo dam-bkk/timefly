@@ -151,7 +151,7 @@ export function WeekGrid({ personId, self, weekStart, days, today, rows: initial
                 const s = states[d]!;
                 const off = s === "off";
                 return (
-                  <th key={d} className={cn("w-[92px] px-2 py-2 text-center font-medium hairline-b", d === today && "bg-accent-soft/50", off && "text-ink-4")}>
+                  <th key={d} className={cn("px-2 py-2 text-center font-medium hairline-b", off ? "w-[64px] text-ink-4" : "w-[96px]", d === today && "bg-accent-soft/50")}>
                     <span className="flex flex-col items-center leading-tight">
                       <span className={cn("text-[11px] uppercase tracking-[0.04em]", d === today ? "text-accent-ink" : "text-ink-3")}>{shortDay(d)}</span>
                       <span className={cn("text-[12.5px]", d === today && "font-semibold text-accent-ink")}>{shortDate(d)}</span>
@@ -181,8 +181,9 @@ export function WeekGrid({ personId, self, weekStart, days, today, rows: initial
                       <span className="block truncate font-medium" title={`${r.projectCode} ${r.projectName}`}>
                         {r.projectName}
                       </span>
-                      <span className="block truncate text-[12px] text-ink-3">
-                        <span className="font-mono text-[11px]">{r.projectCode}</span> · {r.taskName}
+                      <span className="block truncate text-[12px] text-ink-2">
+                        <span className="font-medium">{r.taskName}</span>
+                        <span className="font-mono text-[11px] text-ink-3"> · {r.projectCode}</span>
                       </span>
                     </span>
                   </div>

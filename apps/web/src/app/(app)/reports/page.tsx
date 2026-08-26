@@ -186,7 +186,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                         <th className="sticky left-0 z-10 bg-surface px-4 py-2.5 font-medium hairline-b">{DIMENSIONS.find(([k]) => k === p.rows)?.[1]}</th>
                         {p.cols !== "none" &&
                           table.cols.map((c) => (
-                            <th key={c} className="max-w-[160px] truncate px-3 py-2.5 text-right font-medium hairline-b" title={c}>
+                            <th key={c} className="min-w-[96px] max-w-[180px] px-3 py-2 text-right align-bottom text-[12px] font-medium leading-tight hairline-b" title={c}>
                               {c}
                             </th>
                           ))}

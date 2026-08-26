@@ -66,9 +66,9 @@ export function CommandPalette({ manager }: { manager: boolean }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="flex h-8 w-64 items-center gap-2 rounded-md bg-surface-2 px-2.5 text-left text-[13px] text-ink-3 transition-colors hover:bg-surface-3">
+      <button onClick={() => setOpen(true)} className="flex h-8 w-52 items-center gap-2 rounded-md bg-surface-2 px-2.5 text-left text-[13px] text-ink-3 transition-colors hover:bg-surface-3">
         <Search className="size-3.5" />
-        <span className="flex-1">Search projects, requests, people</span>
+        <span className="flex-1 truncate whitespace-nowrap">Search…</span>
         <Kbd>⌘K</Kbd>
       </button>
       <Dialog.Root open={open} onOpenChange={setOpen}>

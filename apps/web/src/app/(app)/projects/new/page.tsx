@@ -19,7 +19,8 @@ export default async function NewProject({ searchParams }: { searchParams: Promi
     <>
       <Topbar crumbs={[{ label: "Projects", href: "/projects" }, { label: "New" }]} />
       <div className="flex-1 overflow-y-auto">
-        <PageHeader title="New project or work request" eyebrow={<span>Leave the code empty to number it automatically. Work requests usually take their Service Desk reference (SR-…).</span>} />
+        <PageHeader title="New project or work request" />
+        <p className="-mt-3 px-6 pb-4 text-[13px] text-ink-3">Leave the code empty to number it automatically. Work requests usually take their Service Desk reference (SR-…).</p>
         <form action={createProject} className="mx-auto max-w-[880px] space-y-4 px-6 pb-8 rise">
           <div className="panel grid gap-4 p-5 md:grid-cols-3">
             <Field label="Type">

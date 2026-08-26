@@ -55,23 +55,23 @@ const TASKS: [string, string][] = [
 
 type ProjSpec = { code: string; name: string; team: number; budget: number; client: string; starts: string; ends: string; status?: "active" | "on_hold" | "completed" };
 const PROJECTS: ProjSpec[] = [
-  { code: "PRJ-2026-01", name: "QNET eStore Revamp", team: 0, budget: 2400, client: "QNET", starts: "2026-03-02", ends: "2026-12-18" },
-  { code: "PRJ-2026-02", name: "Lisa Analytics Platform", team: 3, budget: 900, client: "QNET", starts: "2026-04-13", ends: "2026-10-30" },
-  { code: "PRJ-2026-03", name: "WEB360 Web Estate", team: 0, budget: 1200, client: "QI Group", starts: "2026-05-04", ends: "2026-11-27" },
-  { code: "PRJ-2026-04", name: "QNET Verify Anti-fraud", team: 0, budget: 600, client: "QNET", starts: "2026-06-01", ends: "2026-09-30" },
-  { code: "PRJ-2026-05", name: "Translation Platform", team: 0, budget: 1600, client: "QI Group", starts: "2026-02-16", ends: "2026-10-16" },
-  { code: "PRJ-2026-06", name: "Newsroom on WP Engine", team: 4, budget: 500, client: "QNET", starts: "2026-07-06", ends: "2026-10-30" },
-  { code: "PRJ-2026-07", name: "Service Desk (Freshservice replacement)", team: 0, budget: 1000, client: "IT internal", starts: "2026-08-03", ends: "2027-01-29" },
-  { code: "PRJ-2026-08", name: "Intune & Autopilot Rollout", team: 2, budget: 700, client: "IT internal", starts: "2026-05-18", ends: "2026-09-25" },
-  { code: "PRJ-2026-09", name: "Entra SSO Migration", team: 2, budget: 450, client: "IT internal", starts: "2026-06-08", ends: "2026-09-11" },
-  { code: "PRJ-2026-10", name: "Data Warehouse Phase 2", team: 3, budget: 1100, client: "QI Group", starts: "2026-04-01", ends: "2026-12-11" },
-  { code: "PRJ-2026-11", name: "Mobile App v3", team: 0, budget: 1800, client: "QNET", starts: "2026-05-11", ends: "2027-02-26" },
-  { code: "PRJ-2026-12", name: "Payment Gateway Upgrade", team: 0, budget: 550, client: "QNET", starts: "2026-06-22", ends: "2026-09-18" },
-  { code: "PRJ-2026-13", name: "Regional Sites Replication", team: 4, budget: 400, client: "QNET", starts: "2026-07-13", ends: "2026-10-09" },
-  { code: "PRJ-2026-14", name: "Test Automation Framework", team: 1, budget: 600, client: "IT internal", starts: "2026-04-20", ends: "2026-10-30" },
-  { code: "PRJ-2026-15", name: "Azure Landing Zone", team: 2, budget: 800, client: "IT internal", starts: "2026-03-16", ends: "2026-08-14", status: "completed" },
-  { code: "PRJ-2026-16", name: "Finance Reporting Cube", team: 3, budget: 500, client: "QI Group", starts: "2026-07-20", ends: "2026-11-13" },
-  { code: "PRJ-2026-17", name: "Delivery Governance & Reporting", team: 5, budget: 600, client: "IT internal", starts: "2026-01-12", ends: "2026-12-18" },
+  { code: "PRJ-2026-01", name: "QNET eStore Revamp", team: 0, budget: 7200, client: "QNET", starts: "2026-03-02", ends: "2026-12-18" },
+  { code: "PRJ-2026-02", name: "Lisa Analytics Platform", team: 3, budget: 2700, client: "QNET", starts: "2026-04-13", ends: "2026-10-30" },
+  { code: "PRJ-2026-03", name: "WEB360 Web Estate", team: 0, budget: 3600, client: "QI Group", starts: "2026-05-04", ends: "2026-11-27" },
+  { code: "PRJ-2026-04", name: "QNET Verify Anti-fraud", team: 0, budget: 1800, client: "QNET", starts: "2026-06-01", ends: "2026-09-30" },
+  { code: "PRJ-2026-05", name: "Translation Platform", team: 0, budget: 4800, client: "QI Group", starts: "2026-02-16", ends: "2026-10-16" },
+  { code: "PRJ-2026-06", name: "Newsroom on WP Engine", team: 4, budget: 1500, client: "QNET", starts: "2026-07-06", ends: "2026-10-30" },
+  { code: "PRJ-2026-07", name: "Service Desk (Freshservice replacement)", team: 0, budget: 3000, client: "IT internal", starts: "2026-08-03", ends: "2027-01-29" },
+  { code: "PRJ-2026-08", name: "Intune & Autopilot Rollout", team: 2, budget: 2100, client: "IT internal", starts: "2026-05-18", ends: "2026-09-25" },
+  { code: "PRJ-2026-09", name: "Entra SSO Migration", team: 2, budget: 1350, client: "IT internal", starts: "2026-06-08", ends: "2026-09-11" },
+  { code: "PRJ-2026-10", name: "Data Warehouse Phase 2", team: 3, budget: 3300, client: "QI Group", starts: "2026-04-01", ends: "2026-12-11" },
+  { code: "PRJ-2026-11", name: "Mobile App v3", team: 0, budget: 5400, client: "QNET", starts: "2026-05-11", ends: "2027-02-26" },
+  { code: "PRJ-2026-12", name: "Payment Gateway Upgrade", team: 0, budget: 1650, client: "QNET", starts: "2026-06-22", ends: "2026-09-18" },
+  { code: "PRJ-2026-13", name: "Regional Sites Replication", team: 4, budget: 1200, client: "QNET", starts: "2026-07-13", ends: "2026-10-09" },
+  { code: "PRJ-2026-14", name: "Test Automation Framework", team: 1, budget: 1800, client: "IT internal", starts: "2026-04-20", ends: "2026-10-30" },
+  { code: "PRJ-2026-15", name: "Azure Landing Zone", team: 2, budget: 2400, client: "IT internal", starts: "2026-03-16", ends: "2026-08-14", status: "completed" },
+  { code: "PRJ-2026-16", name: "Finance Reporting Cube", team: 3, budget: 1500, client: "QI Group", starts: "2026-07-20", ends: "2026-11-13" },
+  { code: "PRJ-2026-17", name: "Delivery Governance & Reporting", team: 5, budget: 1800, client: "IT internal", starts: "2026-01-12", ends: "2026-12-18" },
 ];
 
 const WORK_REQUESTS: [string, number][] = [
@@ -264,7 +264,7 @@ async function main() {
         continue;
       }
       const stamp = (h: number) => at(d, h, between(0, 59));
-      let left = isToday ? quarter(1.5, 5) : quarter(dayTarget - 0.5, dayTarget + 1.25);
+      let left = isToday ? quarter(1.5, 5) : quarter(dayTarget - 1, dayTarget + 0.75);
       const push = (projectId: number, taskName: string, hours: number, ctx?: string, withNote = chance(0.65)) => {
         if (hours <= 0) return;
         entries.push({ personId: p.id, projectId, taskId: task(taskName), date: d, hours, notes: withNote ? note(taskName, ctx) : null, createdAt: stamp(between(9, 18)), updatedAt: stamp(between(9, 18)) });

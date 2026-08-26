@@ -36,7 +36,7 @@ export function Bars({ data, width = 480, height = 120, labels, color = "var(--a
           <g key={i}>
             <rect x={x} y={ih - ha} width={color2 ? bw / 2 - 1 : bw} height={ha} rx={2} fill={color} />
             {color2 && <rect x={x + bw / 2 + 1} y={ih - hb} width={bw / 2 - 1} height={hb} rx={2} fill={color2} />}
-            {labels && (i % Math.ceil(n / 8) === 0 && n - 1 - i >= Math.ceil(n / 8) / 2 || i === n - 1) && (
+            {labels && i % Math.ceil(n / 6) === 0 && (
               <text x={x + bw / 2} y={height - 3} textAnchor="middle" fontSize={11} fill="var(--ink-3)">
                 {labels[i]}
               </text>

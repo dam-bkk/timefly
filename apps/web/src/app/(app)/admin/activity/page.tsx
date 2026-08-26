@@ -45,7 +45,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             {rows.map((a) => (
               <tr key={a.id} className="hairline-b align-top">
                 <td className="tnum whitespace-nowrap px-4 py-2 text-ink-2">{longTime(a.ts)}</td>
-                <td className="px-3 py-2">
+                <td className="whitespace-nowrap px-3 py-2">
                   <span className="font-medium">{a.actorName}</span>
                   {a.actorType !== "user" && <span className="block text-[11px] text-ink-3">{a.actorType}</span>}
                 </td>
