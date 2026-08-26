@@ -62,10 +62,11 @@ describe("day signals", () => {
     const s = dayStates(week, entries, { today: "2026-08-28", target: 8, minHours: 1, holidays: ["2026-08-26"] });
     expect(s["2026-08-25"]).toBe("ok");
     expect(s["2026-08-26"]).toBe("off");
-    expect(s["2026-08-28"]).toBe("missing");
+    expect(s["2026-08-28"]).toBe("future"); // today, nothing yet: quiet until the day is over
   });
-  it("lists missing days", () => {
-    expect(missingDays(week, entries, { today: "2026-08-28", target: 8 })).toEqual(["2026-08-26", "2026-08-28"]);
+  it("lists missing days (past only)", () => {
+    expect(missingDays(week, entries, { today: "2026-08-28", target: 8 })).toEqual(["2026-08-26"]);
+    expect(missingDays(week, entries, { today: "2026-08-31", target: 8 })).toEqual(["2026-08-26", "2026-08-28"]);
   });
   it("summarises the week against the elapsed target", () => {
     const s = weekSummary(week, entries, { today: "2026-08-27", target: 8 });

@@ -8,3 +8,5 @@ dist
 coverage
 backups
 *.tsbuildinfo
+apps/web/AGENTS.md
+apps/web/CLAUDE.md

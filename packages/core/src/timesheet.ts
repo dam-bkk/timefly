@@ -61,7 +61,7 @@ export function dayStates(days: ISODate[], entries: EntryLike[], opts: { today: 
   for (const d of days) {
     const h = totals[d] ?? 0;
     if (isWeekend(d) || holidays.has(d)) out[d] = "off";
-    else if (d > opts.today) out[d] = "future";
+    else if (d > opts.today || (d === opts.today && h === 0)) out[d] = "future"; // today is only "missing" once it is over
     else if (h === 0) out[d] = "missing";
     else if (h < min) out[d] = "short";
     else if (h > opts.target * 1.5) out[d] = "over";
