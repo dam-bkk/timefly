@@ -16,6 +16,7 @@ export async function updateSettings(formData: FormData) {
     dayTarget: Math.min(24, Math.max(1, Number(formData.get("dayTarget")) || DEFAULT_SETTINGS.dayTarget)),
     workingDays: workingDays.length ? workingDays.sort() : DEFAULT_SETTINGS.workingDays,
     approvals: formData.get("approvals") === "on",
+    autoApproveClean: formData.get("autoApproveClean") === "on",
     hoursFormat: formData.get("hoursFormat") === "clock" ? "clock" : "decimal",
     roundTo: [0, 0.05, 0.1, 0.25, 0.5].includes(Number(formData.get("roundTo"))) ? Number(formData.get("roundTo")) : DEFAULT_SETTINGS.roundTo,
     reminderHour: Math.min(23, Math.max(0, Number(formData.get("reminderHour")) || DEFAULT_SETTINGS.reminderHour)),

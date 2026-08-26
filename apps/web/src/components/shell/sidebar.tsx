@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BarChart3, CalendarDays, FolderKanban, PanelLeft, PanelLeftClose, Settings, Users, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,10 @@ const KEY = "sidebar:locked";
  * open in the flow. The choice persists in localStorage + a cookie (so the server renders the right width).
  */
 export function Sidebar({ me, counts, version, env, lockedInitial }: { me: { displayName: string; jobTitle: string | null; role: string }; counts: { missing: number; team: number }; version: string; env: string; lockedInitial: boolean }) {
-  const path = usePathname();
+  const rawPath = usePathname();
+  const params = useSearchParams();
+  // Reviewing someone else's week from Team is a Team activity, not "my timesheet".
+  const path = rawPath === "/time" && params.get("person") ? "/team" : rawPath;
   const [locked, setLocked] = useState(lockedInitial);
   useEffect(() => {
     const v = localStorage.getItem(KEY);

@@ -338,7 +338,7 @@ async function main() {
   await db.insert(schema.notifications).values(notifs);
 
   // Settings
-  const settings: schema.Settings = { weekStartsOn: 1, dayTarget: 8, workingDays: [1, 2, 3, 4, 5], approvals: true, hoursFormat: "decimal", roundTo: 0.25, reminderHour: 17, lockAfterDays: 14, holidays: [] };
+  const settings: schema.Settings = { weekStartsOn: 1, dayTarget: 8, workingDays: [1, 2, 3, 4, 5], approvals: true, autoApproveClean: true, hoursFormat: "decimal", roundTo: 0.25, reminderHour: 17, lockAfterDays: 14, holidays: [] };
   await db.insert(schema.settings).values([{ key: "timesheets", value: settings }, { key: "harvest", value: { accountId: null, lastImportAt: "2026-08-01T02:10:00+08:00", imported: { users: 72, projects: 51, tasks: 11, entries: entries.filter((e) => e.harvestId).length } } }]);
 
   // Activity log
@@ -372,6 +372,7 @@ async function main() {
   await db.insert(schema.systemJobs).values([
     { name: "json-backup", description: "Offsite JSON export of every table", schedule: "daily 03:00", lastRunAt: at(TODAY, 3, 0), lastStatus: "ok", lastDurationMs: 4210, nextRunAt: at(addDays(TODAY, 1), 3, 0), detail: `${entries.length.toLocaleString()} entries · 2.4 MB → blob` },
     { name: "reminders", description: "Nudge people with nothing logged for the previous working day", schedule: "weekdays 17:30", lastRunAt: at(yesterday, 17, 30), lastStatus: "ok", lastDurationMs: 380, nextRunAt: at(TODAY, 17, 30), detail: `${notifs.filter((n) => n.kind === "reminder").length} reminders sent` },
+    { name: "submit-nudge", description: "Friday afternoon + Monday morning: ask anyone who has not submitted to submit", schedule: "Fri 16:00 · Mon 09:00", lastRunAt: at(addDays(thisWeek, -3), 16, 0), lastStatus: "ok", lastDurationMs: 210, nextRunAt: at(addDays(thisWeek, 4), 16, 0), detail: "9 nudges sent" },
     { name: "week-lock", description: "Lock open timesheets older than the grace period", schedule: "Mondays 06:00", lastRunAt: at(thisWeek, 6, 0), lastStatus: "ok", lastDurationMs: 120, nextRunAt: at(addDays(thisWeek, 7), 6, 0), detail: "0 timesheets locked" },
     { name: "harvest-sync", description: "Delta import from Harvest until the cut-over", schedule: "manual", lastRunAt: at(HARVEST_CUTOVER, 2, 10), lastStatus: "warning", lastDurationMs: 61_000, detail: "Read-only token expired — set HARVEST_ACCOUNT_ID + HARVEST_TOKEN to re-run" },
   ]);

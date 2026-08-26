@@ -72,6 +72,19 @@ export async function reminders(): Promise<string> {
   return `${targets.length} reminders for ${prev}`;
 }
 
+/** Friday afternoon: nudge anyone who has not submitted this week. Monday morning: same for last week. */
+export async function submitNudge(): Promise<string> {
+  const s = await settings();
+  const d = today();
+  const dow = new Date(d).getUTCDay();
+  const week = dow === s.weekStartsOn ? addDays(startOfWeek(d, s.weekStartsOn), -7) : startOfWeek(d, s.weekStartsOn);
+  const rows = (await db.execute(sql`select p.id from people p left join timesheets t on t.person_id = p.id and t.week_start = ${week}
+    where p.status = 'active' and (t.id is null or t.status in ('open','reopened'))
+    and not exists (select 1 from notifications n where n.person_id = p.id and n.kind = 'reminder' and n.created_at::date = current_date)`)) as unknown as { id: number }[];
+  if (rows.length) await db.insert(schema.notifications).values(rows.map((r) => ({ personId: r.id, kind: "reminder", title: `Please submit your timesheet for w/c ${week}`, body: "Check the week has no gaps, then Submit — your manager reviews on Monday.", href: `/time?week=${week}` })));
+  return `${rows.length} nudges for w/c ${week}`;
+}
+
 export async function weekLock(): Promise<string> {
   const s = await settings();
   if (!s.lockAfterDays) return "disabled (lockAfterDays = 0)";
@@ -81,7 +94,7 @@ export async function weekLock(): Promise<string> {
   return `${rows.length} timesheets locked (weeks ≤ ${cutoff})`;
 }
 
-const JOBS: Record<string, () => Promise<string>> = { "json-backup": jsonBackup, reminders, "week-lock": weekLock };
+const JOBS: Record<string, () => Promise<string>> = { "json-backup": jsonBackup, reminders, "submit-nudge": submitNudge, "week-lock": weekLock };
 
 async function main() {
   const once = process.argv.indexOf("--once");
@@ -100,6 +113,8 @@ async function main() {
     const key = (name: string) => `${name}:${d}`;
     if (h === 3 && last["json-backup"] !== key("json-backup")) (last["json-backup"] = key("json-backup")), await ran("json-backup", jsonBackup);
     if (h === s.reminderHour && !isWeekend(d) && last.reminders !== key("reminders")) (last.reminders = key("reminders")), await ran("reminders", reminders);
+    const dow = new Date(d).getUTCDay();
+    if (((dow === 5 && h === 16) || (dow === s.weekStartsOn && h === 9)) && last["submit-nudge"] !== key("submit-nudge")) (last["submit-nudge"] = key("submit-nudge")), await ran("submit-nudge", submitNudge);
     if (h === 6 && new Date(d).getUTCDay() === s.weekStartsOn && last["week-lock"] !== key("week-lock")) (last["week-lock"] = key("week-lock")), await ran("week-lock", weekLock);
     await new Promise((r) => setTimeout(r, 5 * 60_000));
   }

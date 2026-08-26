@@ -52,6 +52,7 @@ export default async function GeneralSettings() {
         </div>
         <div className="panel space-y-3 p-5">
           <Toggle name="approvals" label="Managers approve submitted weeks" defaultChecked={s.approvals} />
+          <Toggle name="autoApproveClean" label="Auto-approve clean weeks (every working day logged, total within contract) — managers only review exceptions" defaultChecked={s.autoApproveClean} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Reminder time" help="Weekday reminder for anyone with nothing logged yesterday (worker job).">
               <Input name="reminderHour" type="number" min="0" max="23" defaultValue={s.reminderHour} />

@@ -10,6 +10,7 @@ import { WeekNav } from "@/components/shell/week-nav";
 import { Avatar } from "@/components/ui/avatar";
 import { SheetPill } from "@/components/ui/pills";
 import { WeekGrid, type GridRow } from "./grid";
+import { nextAwaiting, rowsFromLastWeek } from "./actions";
 import { SheetControls } from "./sheet-controls";
 
 export const metadata = { title: "My timesheet" };
@@ -41,6 +42,18 @@ export default async function TimePage({ searchParams }: { searchParams: Promise
   const approve = settings.approvals && canApprove(sheet.status, me.role, self);
   const reopen = canReopen(sheet.status, me.role) && !self;
   const pastMissing = summary.missing.filter((d) => d < today);
+  const queue = approve ? await nextAwaiting({ weekStart, afterPersonId: person.id }) : null;
+  // Empty week + editable: start from last week's rows so the first action is typing hours, not building rows.
+  let prefilled = false;
+  if (rows.length === 0 && editable) {
+    const keys = await rowsFromLastWeek({ personId: person.id, weekStart });
+    for (const k of keys) {
+      const p = projects.find((x) => x.id === k.projectId);
+      const t = tasks.find((x) => x.id === k.taskId);
+      if (p && t) rows.push({ projectId: p.id, taskId: t.id, projectCode: p.code, projectName: p.name, projectKind: p.kind, taskName: t.name, cells: {} });
+    }
+    prefilled = rows.length > 0;
+  }
 
   return (
     <>
@@ -74,7 +87,7 @@ export default async function TimePage({ searchParams }: { searchParams: Promise
             <SheetPill status={sheet.status} />
             {sheet.status === "reopened" && sheet.note && <span className="text-[12.5px] text-warn">“{sheet.note}”</span>}
             <div className="ml-auto">
-              <SheetControls personId={person.id} weekStart={weekStart} timesheetId={sheet.id} status={sheet.status} canSubmit={submit} canApprove={approve} canReopen={reopen} />
+              <SheetControls personId={person.id} weekStart={weekStart} timesheetId={sheet.id} status={sheet.status} canSubmit={submit} canApprove={approve} canReopen={reopen} next={queue} />
             </div>
           </div>
 
@@ -82,11 +95,12 @@ export default async function TimePage({ searchParams }: { searchParams: Promise
             <div className={cn("flex items-center gap-2 rounded-lg px-4 py-2 text-[13px]", "bg-crit-soft text-crit")}>
               <AlertCircle className="size-4 shrink-0" />
               <span>
-                Nothing logged for {pastMissing.map((d) => longDate(d).replace(/ \d{4}$/, "")).join(", ")}.{editable ? " Fill it in before submitting." : ""}
+                Nothing logged for {pastMissing.map((d) => longDate(d).replace(/ \d{4}$/, "")).join(", ")}.{self && editable ? " Fill it in before submitting." : ""}
               </span>
             </div>
           )}
 
+          {prefilled && <p className="text-[12.5px] text-ink-3">Rows carried over from your last week — type the hours, remove what does not apply.</p>}
           <WeekGrid personId={person.id} self={self} weekStart={weekStart} days={days} today={today} rows={rows} projects={projects} tasks={tasks} canEdit={editable} hoursFormat={settings.hoursFormat} dayTarget={dayTarget} holidays={settings.holidays} />
 
           <p className="text-[12px] text-ink-3">

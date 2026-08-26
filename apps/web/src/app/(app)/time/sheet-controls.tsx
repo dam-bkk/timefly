@@ -1,12 +1,14 @@
 "use client";
 
 import { Check, RotateCcw, Send } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { approveWeek, reopenWeek, submitWeek } from "./actions";
 
 /** Submit (owner) / Approve / Reopen (manager) — the three verbs of a timesheet week. */
-export function SheetControls({ personId, weekStart, timesheetId, status, canSubmit, canApprove, canReopen }: { personId: number; weekStart: string; timesheetId: number; status: string; canSubmit: boolean; canApprove: boolean; canReopen: boolean }) {
+export function SheetControls({ personId, weekStart, timesheetId, status, canSubmit, canApprove, canReopen, next }: { personId: number; weekStart: string; timesheetId: number; status: string; canSubmit: boolean; canApprove: boolean; canReopen: boolean; next?: { personId: number; left: number } | null }) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [reopen, setReopen] = useState(false);
   const [note, setNote] = useState("");
@@ -18,8 +20,19 @@ export function SheetControls({ personId, weekStart, timesheetId, status, canSub
         </Button>
       )}
       {canApprove && (
-        <Button size="sm" variant="primary" disabled={pending} onClick={() => start(() => approveWeek(timesheetId))}>
-          <Check className="size-3.5" /> Approve
+        <Button
+          size="sm"
+          variant="primary"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              await approveWeek(timesheetId);
+              if (next) router.push(`/time?person=${next.personId}&week=${weekStart}`);
+            })
+          }
+          title={next ? `${next.left} more awaiting approval` : undefined}
+        >
+          <Check className="size-3.5" /> {next ? `Approve & next (${next.left} left)` : "Approve"}
         </Button>
       )}
       {canReopen && !reopen && (

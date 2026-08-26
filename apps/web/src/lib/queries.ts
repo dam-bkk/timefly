@@ -99,7 +99,7 @@ export async function reports(me: Principal, teamId?: number | null) {
     .orderBy(asc(schema.people.displayName));
 }
 
-export type TeamWeekRow = { person: { id: number; displayName: string; jobTitle: string | null; teamId: number | null; weeklyHours: number }; byDay: Record<string, number>; total: number; states: Record<string, DayState>; missing: number; sheet: { id: number; status: "open" | "submitted" | "approved" | "reopened"; submittedAt: Date | null; approvedAt: Date | null } | null };
+export type TeamWeekRow = { person: { id: number; displayName: string; jobTitle: string | null; teamId: number | null; weeklyHours: number }; byDay: Record<string, number>; total: number; states: Record<string, DayState>; missing: number; missingDays: string[]; remindedAt: Date | null; sheet: { id: number; status: "open" | "submitted" | "approved" | "reopened"; submittedAt: Date | null; approvedAt: Date | null } | null };
 
 /** One row per person for the manager's week view. */
 export async function teamWeek(me: Principal, weekStart: ISODate, teamId?: number | null): Promise<TeamWeekRow[]> {
@@ -111,6 +111,7 @@ export async function teamWeek(me: Principal, weekStart: ISODate, teamId?: numbe
   const ids = ppl.map((p) => p.id);
   const totals = (await db.execute(sql`select person_id, date::text as date, sum(hours)::float as hours from time_entries where person_id in ${ids} and date between ${weekStart} and ${addDays(weekStart, 6)} group by person_id, date`)) as unknown as { person_id: number; date: string; hours: number }[];
   const sheets = await db.select({ id: schema.timesheets.id, personId: schema.timesheets.personId, status: schema.timesheets.status, submittedAt: schema.timesheets.submittedAt, approvedAt: schema.timesheets.approvedAt }).from(schema.timesheets).where(and(inArray(schema.timesheets.personId, ids), eq(schema.timesheets.weekStart, weekStart)));
+  const reminded = (await db.execute(sql`select person_id, max(created_at) as at from notifications where kind = 'reminder' and person_id in ${ids} and href like ${`%week=${weekStart}%`} group by person_id`)) as unknown as { person_id: number; at: Date }[];
   return ppl.map((p) => {
     const mine = totals.filter((t) => t.person_id === p.id);
     const byDay: Record<string, number> = {};
@@ -118,7 +119,7 @@ export async function teamWeek(me: Principal, weekStart: ISODate, teamId?: numbe
     const entries = mine.map((t) => ({ date: t.date, hours: t.hours }));
     const states = dayStates(days, entries, { today, target: dayTargetFor(p.weeklyHours, settings.workingDays), holidays: settings.holidays });
     const sheet = sheets.find((s) => s.personId === p.id) ?? null;
-    return { person: { id: p.id, displayName: p.displayName, jobTitle: p.jobTitle, teamId: p.teamId, weeklyHours: p.weeklyHours }, byDay, total: Math.round(mine.reduce((a, t) => a + t.hours, 0) * 100) / 100, states, missing: days.filter((d) => states[d] === "missing").length, sheet: sheet ? { id: sheet.id, status: sheet.status, submittedAt: sheet.submittedAt, approvedAt: sheet.approvedAt } : null };
+    return { person: { id: p.id, displayName: p.displayName, jobTitle: p.jobTitle, teamId: p.teamId, weeklyHours: p.weeklyHours }, byDay, total: Math.round(mine.reduce((a, t) => a + t.hours, 0) * 100) / 100, states, missing: days.filter((d) => states[d] === "missing").length, missingDays: days.filter((d) => states[d] === "missing"), remindedAt: (() => { const r = reminded.find((x) => x.person_id === p.id); return r ? new Date(r.at) : null; })(), sheet: sheet ? { id: sheet.id, status: sheet.status, submittedAt: sheet.submittedAt, approvedAt: sheet.approvedAt } : null };
   });
 }
 

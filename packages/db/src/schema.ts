@@ -153,6 +153,8 @@ export type Settings = {
   dayTarget: number;
   workingDays: number[];
   approvals: boolean;
+  /** Approve a submitted week automatically when every working day has hours and the total is within contract. */
+  autoApproveClean: boolean;
   hoursFormat: "decimal" | "clock";
   roundTo: number;
   reminderHour: number;

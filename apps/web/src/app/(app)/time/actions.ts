@@ -1,13 +1,13 @@
 "use server";
 
 import { db, schema } from "@timefly/db";
-import { addDays, canApprove, canEditEntries, canReopen, canSubmit, canTransition, roundHours, startOfWeek, type TimesheetStatus } from "@timefly/core";
-import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
+import { addDays, canApprove, canEditEntries, canReopen, canSubmit, canTransition, dayStates, roundHours, startOfWeek, weekDays, type TimesheetStatus } from "@timefly/core";
+import { and, asc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { canSee, requirePrincipal, type Principal } from "@/lib/auth";
+import { canSee, requirePrincipal, todayISO, type Principal } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { getSettings } from "@/lib/settings";
-import { personById, timesheetFor } from "@/lib/queries";
+import { dayTargetFor, personById, timesheetFor } from "@/lib/queries";
 
 export type SavedCell = { id: number; hours: number; notes: string | null; timerStartedAt: string | null } | null;
 
@@ -93,6 +93,21 @@ export async function submitWeek(input: { personId: number; weekStart: string })
   const settings = await getSettings();
   await db.update(schema.timesheets).set({ status: "submitted", submittedAt: new Date() }).where(eq(schema.timesheets.id, sheet.id));
   await logActivity(me, { action: "timesheet.submit", category: "timesheet", targetType: "timesheet", targetId: sheet.id, before: { status: sheet.status }, after: { status: "submitted", weekStart: input.weekStart, personId: input.personId } });
+  // Clean week → approved without a manager click (setting). Clean = every working day has hours, total within contract +15%.
+  if (settings.approvals && settings.autoApproveClean) {
+    const days = weekDays(input.weekStart);
+    const rows = await db.select({ date: schema.timeEntries.date, hours: schema.timeEntries.hours }).from(schema.timeEntries).where(and(eq(schema.timeEntries.personId, input.personId), gte(schema.timeEntries.date, input.weekStart), lte(schema.timeEntries.date, addDays(input.weekStart, 6))));
+    const states = dayStates(days, rows, { today: addDays(input.weekStart, 7), target: dayTargetFor(target.weeklyHours, settings.workingDays), holidays: settings.holidays });
+    const gaps = days.filter((d) => states[d] === "missing").length;
+    const total = rows.reduce((a, r) => a + r.hours, 0);
+    if (gaps === 0 && total <= target.weeklyHours * 1.15) {
+      await db.update(schema.timesheets).set({ status: "approved", approvedAt: new Date(), approvedById: null, note: "Auto-approved: every working day logged, total within contract" }).where(eq(schema.timesheets.id, sheet.id));
+      await logActivity(null, { action: "timesheet.auto_approve", category: "timesheet", targetType: "timesheet", targetId: sheet.id, after: { weekStart: input.weekStart, personId: input.personId, total } });
+      await db.insert(schema.notifications).values({ personId: input.personId, kind: "approved", title: `Timesheet for w/c ${input.weekStart} approved automatically`, body: "Complete week, no gaps — nothing for your manager to do.", href: `/time?week=${input.weekStart}` });
+      revalidate(input.personId);
+      return;
+    }
+  }
   if (settings.approvals && target.managerId) await db.insert(schema.notifications).values({ personId: target.managerId, kind: "submitted", title: `${target.displayName} submitted w/c ${input.weekStart}`, href: `/time?person=${target.id}&week=${input.weekStart}` });
   revalidate(input.personId);
 }
@@ -119,6 +134,17 @@ export async function approveWeek(timesheetId: number) {
   await transition(await requirePrincipal(), timesheetId, "approved");
 }
 
+/** Next person in my approval queue for this week (alphabetical), for "Approve & next". */
+export async function nextAwaiting(input: { weekStart: string; afterPersonId: number }): Promise<{ personId: number; left: number } | null> {
+  const me = await requirePrincipal();
+  if (me.role === "member") return null;
+  const rows = (await db.execute(sql`select t.person_id as id, p.display_name as name from timesheets t join people p on p.id = t.person_id
+    where t.week_start = ${input.weekStart} and t.status = 'submitted' and p.status = 'active' and t.person_id <> ${input.afterPersonId}
+    ${me.role === "admin" ? sql`` : sql`and (p.manager_id = ${me.id} or p.team_id = ${me.teamId ?? -1}) and p.id <> ${me.id}`}
+    order by p.display_name`)) as unknown as { id: number; name: string }[];
+  return rows[0] ? { personId: rows[0].id, left: rows.length } : null;
+}
+
 export async function reopenWeek(timesheetId: number, note: string) {
   await transition(await requirePrincipal(), timesheetId, "reopened", note);
 }
@@ -132,6 +158,52 @@ export async function remind(input: { personId: number; weekStart: string; days:
   await db.insert(schema.notifications).values({ personId: input.personId, kind: "reminder", title: what, body: `${me.displayName} asked you to complete it.`, href: `/time?week=${input.weekStart}` });
   await logActivity(me, { action: "timesheet.remind", category: "timesheet", targetType: "person", targetId: input.personId, after: { weekStart: input.weekStart, days: input.days } });
   revalidate(input.personId);
+}
+
+/** Bulk nudge: one notification per person, one log line. Skips anyone already reminded today for this week. */
+export async function remindMany(input: { personIds: number[]; weekStart: string }): Promise<{ sent: number; skipped: number }> {
+  const me = await requirePrincipal();
+  if (me.role === "member") throw new Error("Not allowed");
+  const settings = await getSettings();
+  const today = todayISO();
+  const days = weekDays(input.weekStart);
+  const people = (await db.select().from(schema.people).where(inArray(schema.people.id, input.personIds))).filter((p) => canSee(me, p));
+  if (!people.length) return { sent: 0, skipped: 0 };
+  const already = new Set(((await db.execute(sql`select person_id from notifications where kind = 'reminder' and created_at::date = current_date and href like ${`%week=${input.weekStart}%`} and person_id in ${people.map((p) => p.id)}`)) as unknown as { person_id: number }[]).map((r) => r.person_id));
+  const totals = (await db.execute(sql`select person_id, date::text as date, sum(hours)::float as hours from time_entries where person_id in ${people.map((p) => p.id)} and date between ${input.weekStart} and ${addDays(input.weekStart, 6)} group by person_id, date`)) as unknown as { person_id: number; date: string; hours: number }[];
+  const rows: (typeof schema.notifications.$inferInsert)[] = [];
+  for (const p of people) {
+    if (already.has(p.id)) continue;
+    const mine = totals.filter((t) => t.person_id === p.id).map((t) => ({ date: t.date, hours: t.hours }));
+    const states = dayStates(days, mine, { today, target: dayTargetFor(p.weeklyHours, settings.workingDays), holidays: settings.holidays });
+    const gaps = days.filter((d) => states[d] === "missing" && d < today);
+    const what = gaps.length ? `Nothing logged for ${gaps.length} day${gaps.length > 1 ? "s" : ""} in w/c ${input.weekStart}` : `Please submit your timesheet for w/c ${input.weekStart}`;
+    rows.push({ personId: p.id, kind: "reminder", title: what, body: `${me.displayName} asked you to complete it.`, href: `/time?week=${input.weekStart}` });
+  }
+  if (rows.length) await db.insert(schema.notifications).values(rows);
+  await logActivity(me, { action: "timesheet.remind_bulk", category: "timesheet", targetType: "week", targetId: input.weekStart, after: { sent: rows.map((r) => r.personId), skippedAlreadyReminded: [...already] } });
+  revalidatePath("/team");
+  return { sent: rows.length, skipped: already.size };
+}
+
+/** Bulk approve every submitted week in the list the manager is allowed to approve. */
+export async function approveMany(timesheetIds: number[]): Promise<{ approved: number }> {
+  const me = await requirePrincipal();
+  if (me.role === "member") throw new Error("Not allowed");
+  const sheets = await db.select().from(schema.timesheets).where(and(inArray(schema.timesheets.id, timesheetIds), eq(schema.timesheets.status, "submitted")));
+  const people = await db.select().from(schema.people).where(inArray(schema.people.id, sheets.map((s) => s.personId)));
+  const ok = sheets.filter((s) => {
+    const t = people.find((p) => p.id === s.personId);
+    return t && canSee(me, t) && canApprove(s.status, me.role, me.id === s.personId);
+  });
+  if (!ok.length) return { approved: 0 };
+  const now = new Date();
+  await db.update(schema.timesheets).set({ status: "approved", approvedById: me.actor?.id ?? me.id, approvedAt: now }).where(inArray(schema.timesheets.id, ok.map((s) => s.id)));
+  await db.insert(schema.notifications).values(ok.map((s) => ({ personId: s.personId, kind: "approved", title: `Timesheet for w/c ${s.weekStart} approved`, href: `/time?week=${s.weekStart}` })));
+  await logActivity(me, { action: "timesheet.approve_bulk", category: "timesheet", targetType: "timesheet", after: { ids: ok.map((s) => s.id), people: ok.map((s) => people.find((p) => p.id === s.personId)?.displayName) } });
+  revalidatePath("/team");
+  revalidatePath("/time");
+  return { approved: ok.length };
 }
 
 export async function startTimer(input: { personId: number; projectId: number; taskId: number; date: string }): Promise<SavedCell> {
