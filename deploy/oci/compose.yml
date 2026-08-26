@@ -1,0 +1,61 @@
+# Dev/demo deployment on the OCI VM (timefly.damien.asia). Production target is Azure (same image, Container Apps).
+# VM: cd /opt/apps/timefly && git pull --ff-only && sudo docker compose -f deploy/oci/compose.yml up --build -d
+# First run / reset data: sudo docker compose -f deploy/oci/compose.yml --profile seed run --rm seed
+name: timefly
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: timefly
+      POSTGRES_USER: timefly
+      POSTGRES_PASSWORD: timefly-dev-only
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timefly -d timefly"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  web:
+    build:
+      context: ../..
+      target: web
+      args:
+        APP_VERSION: ${APP_VERSION:-0.1.0}
+        GIT_SHA: ${GIT_SHA:-local}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://timefly:timefly-dev-only@db:5432/timefly
+      APP_ENV: demo
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+      GIT_SHA: ${GIT_SHA:-local}
+      BACKUP_DIR: /backups
+    volumes: [backups:/backups]
+    ports: ["172.18.0.1:3026:3000"]
+    depends_on:
+      db: { condition: service_healthy }
+  worker:
+    build:
+      context: ../..
+      target: build
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://timefly:timefly-dev-only@db:5432/timefly
+      BACKUP_DIR: /backups
+    volumes: [backups:/backups]
+    command: sh -lc "pnpm --filter @timefly/worker start"
+    depends_on:
+      db: { condition: service_healthy }
+  seed:
+    profiles: [seed]
+    build:
+      context: ../..
+      target: build
+    environment:
+      DATABASE_URL: postgres://timefly:timefly-dev-only@db:5432/timefly
+    command: sh -lc "pnpm db:push && pnpm db:seed"
+    depends_on:
+      db: { condition: service_healthy }
+volumes:
+  pgdata: {}
+  backups: {}

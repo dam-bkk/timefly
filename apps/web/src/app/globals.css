@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------- Design tokens ---------- */
+:root {
+  --canvas: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e8ebf0;
+  --line: rgba(16, 24, 40, 0.08);
+  --line-strong: rgba(16, 24, 40, 0.14);
+  --ink: #101828;
+  --ink-2: #475467;
+  --ink-3: #5f697e; /* 5.5:1 on surface, 4.9:1 on surface-2 (AA) */
+  --ink-4: #b8c0cc;
+  --accent: #2f5bea;
+  --accent-hover: #2449c4;
+  --accent-ink: #2449c4;
+  --accent-soft: #e9eefc;
+  --on-accent: #ffffff;
+  --ok: #12805c;
+  --ok-soft: #e3f5ec;
+  --warn: #a86a0e;
+  --warn-soft: #fbf0d9;
+  --crit: #c53030;
+  --crit-soft: #fde8e8;
+  --info: #0e7490;
+  --info-soft: #e0f4f8;
+  --violet: #6d4fd6;
+  --violet-soft: #eeeafb;
+  --note: #fbf5e3;
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-2: 0 4px 16px -4px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-3: 0 16px 48px -12px rgba(16, 24, 40, 0.22), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --ring: rgba(47, 91, 234, 0.35);
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --canvas: #0b0d12;
+  --surface: #12151c;
+  --surface-2: #181c25;
+  --surface-3: #1f242f;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --ink: #edeff3;
+  --ink-2: #a3abb8;
+  --ink-3: #838d9e; /* 5.4:1 on dark surface, 5.1:1 on surface-2 (AA) */
+  --ink-4: #4a5261;
+  --accent: #7e9bff;
+  --accent-hover: #93acff;
+  --accent-ink: #a5baff;
+  --accent-soft: #1b2440;
+  --on-accent: #0b0d12;
+  --ok: #4fd39c;
+  --ok-soft: #10281f;
+  --warn: #f2c265;
+  --warn-soft: #2f2610;
+  --crit: #ff8585;
+  --crit-soft: #341717;
+  --info: #5ccbe3;
+  --info-soft: #0e2a31;
+  --violet: #b09cff;
+  --violet-soft: #251f3d;
+  --note: #24211a;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 4px 16px -4px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 16px 48px -12px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --ring: rgba(126, 155, 255, 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-note: var(--note);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+  --shadow-3: var(--shadow-3);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* ---------- Base ---------- */
+* { border-color: var(--line); }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-feature-settings: "cv11", "ss01", "tnum" 0;
+}
+::selection { background: var(--accent-soft); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+button, [role="button"] { cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+input::placeholder, textarea::placeholder { color: var(--ink-3); }
+
+/* Thin, unobtrusive scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- Utilities ---------- */
+.tnum { font-variant-numeric: tabular-nums; }
+.hairline { box-shadow: inset 0 0 0 1px var(--line); }
+.hairline-b { box-shadow: inset 0 -1px 0 var(--line); }
+.hairline-t { box-shadow: inset 0 1px 0 var(--line); }
+.hairline-r { box-shadow: inset -1px 0 0 var(--line); }
+.hairline-l { box-shadow: inset 1px 0 0 var(--line); }
+.panel { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-1); border-radius: var(--radius-lg); }
+.elev { box-shadow: var(--shadow-2); }
+.label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+.eyebrow { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+/* Hide scrollbars on horizontally scrollable strips (tab bars) while keeping them scrollable */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.prose-tl p { margin: 0 0 0.6em; }
+.prose-tl p:last-child { margin-bottom: 0; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* Row hover for lists */
+.row { transition: background-color 120ms ease; }
+.row:hover { background: var(--surface-2); }
+.row[data-active="true"] { background: var(--accent-soft); }
+/* Keyboard focus inside a list row: accent bar on the left, hairline preserved */
+.row:focus-within { box-shadow: inset 2px 0 0 var(--accent); }
+.row.hairline-b:focus-within { box-shadow: inset 2px 0 0 var(--accent), inset 0 -1px 0 var(--line); }
+
+/* Login persona rows: unlayered on purpose — .hairline and the global :focus-visible rule are unlayered,
+   so Tailwind's layered hover:/focus-visible: utilities cannot override them. */
+.persona-row { transition: background-color 120ms ease, box-shadow 120ms ease; }
+.persona-row:hover { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-strong), var(--shadow-2); }
+.persona-row:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+
+/* Progress bar */
+.bar { position: relative; height: 4px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.bar > i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--accent); }
+
+/* Subtle enter animation for main content */
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 220ms cubic-bezier(.2,.7,.2,1) both; }
+
+/* cmdk */
+[cmdk-item][data-selected="true"] { background: var(--surface-2); }

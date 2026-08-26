@@ -1,0 +1,18 @@
+# Local stack: the exact image the VM / Container Apps will run + Postgres 16.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: timefly
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports: ["5434:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  web:
+    build: { context: ., target: web }
+    environment:
+      DATABASE_URL: postgres://postgres@db:5432/timefly
+      APP_ENV: local
+    ports: ["3000:3000"]
+    depends_on: [db]
+volumes:
+  pgdata: {}

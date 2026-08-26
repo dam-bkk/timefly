@@ -1,0 +1,15 @@
+{
+  "name": "timefly",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.12.0",
+  "scripts": {
+    "dev": "pnpm --filter @timefly/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "db:push": "pnpm --filter @timefly/db push",
+    "db:seed": "pnpm --filter @timefly/db seed",
+    "worker": "pnpm --filter @timefly/worker start"
+  }
+}
